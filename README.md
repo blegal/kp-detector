@@ -91,7 +91,7 @@ Location is used only on your Mac to compute the above. Nothing is sent anywhere
 ## Build from source
 
 ```bash
-git clone https://github.com/<you>/kp-detector && cd kp-detector
+git clone https://github.com/blegal/kp-detector && cd kp-detector
 ./build.sh                  # native build → build/KPDetector.app
 ./scripts/package.sh        # universal build → dist/KPDetector-<version>.dmg + .zip
 ```
