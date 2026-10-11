@@ -82,8 +82,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, CLLocationManagerDeleg
                 host.layoutSubtreeIfNeeded()
                 if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
                     host.cacheDisplay(in: host.bounds, to: rep)
-                    try? rep.representation(using: .png, properties: [:])?
-                        .write(to: URL(fileURLWithPath: "\(dir)/\(name)-\(lang).png"))
+                    // Fond opaque : lisible aussi sur le thème sombre de GitHub.
+                    let w = rep.pixelsWide, h = rep.pixelsHigh
+                    if let out = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: w, pixelsHigh: h, bitsPerSample: 8,
+                                                  samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+                                                  colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
+                       let ctx = NSGraphicsContext(bitmapImageRep: out) {
+                        NSGraphicsContext.saveGraphicsState()
+                        NSGraphicsContext.current = ctx
+                        NSColor(srgbRed: 0.93, green: 0.93, blue: 0.93, alpha: 1).setFill()
+                        NSRect(x: 0, y: 0, width: w, height: h).fill()
+                        let img = NSImage(size: NSSize(width: w, height: h))
+                        img.addRepresentation(rep)
+                        img.draw(in: NSRect(x: 0, y: 0, width: w, height: h), from: .zero, operation: .sourceOver, fraction: 1)
+                        NSGraphicsContext.restoreGraphicsState()
+                        out.size = rep.size
+                        try? out.representation(using: .png, properties: [:])?
+                            .write(to: URL(fileURLWithPath: "\(dir)/\(name)-\(lang).png"))
+                    }
                 }
                 win.orderOut(nil)
             }
