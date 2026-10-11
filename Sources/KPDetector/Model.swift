@@ -10,7 +10,8 @@ final class Model: ObservableObject {
     @Published var launchAtLogin = false
 
     // Réglages d'alerte (persistés)
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
+    @Published var alertsExpanded = false
     @Published var alertThreshold: Double { didSet { defaults.set(alertThreshold, forKey: "alertThreshold") } }
     @Published var notifyCenter: Bool { didSet { defaults.set(notifyCenter, forKey: "notifyCenter") } }
     @Published var imessageOn: Bool { didSet { defaults.set(imessageOn, forKey: "imessageOn") } }
@@ -18,8 +19,8 @@ final class Model: ObservableObject {
     @Published var mailOn: Bool { didSet { defaults.set(mailOn, forKey: "mailOn") } }
     @Published var mailTo: String { didSet { defaults.set(mailTo, forKey: "mailTo") } }
 
-    init() {
-        let d = UserDefaults.standard
+    init(defaults d: UserDefaults = .standard) {
+        defaults = d
         alertThreshold = d.object(forKey: "alertThreshold") as? Double ?? 6
         notifyCenter = d.object(forKey: "notifyCenter") as? Bool ?? true
         imessageOn = d.bool(forKey: "imessageOn")

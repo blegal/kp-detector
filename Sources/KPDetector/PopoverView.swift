@@ -140,7 +140,7 @@ struct PopoverView: View {
     // MARK: Alertes
 
     private var alertSettings: some View {
-        DisclosureGroup(L("Alerts")) {
+        DisclosureGroup(L("Alerts"), isExpanded: $model.alertsExpanded) {
             VStack(alignment: .leading, spacing: 6) {
                 Stepper(value: $model.alertThreshold, in: 3...9, step: 1) {
                     Text(L("Alert if forecast Kp > %.0f", model.alertThreshold)).font(.system(size: 12))

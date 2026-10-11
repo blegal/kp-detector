@@ -15,6 +15,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, CLLocationManagerDeleg
     private lazy var alerts = AlertService(model: model)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if let i = CommandLine.arguments.firstIndex(of: "--screenshot"), i + 1 < CommandLine.arguments.count {
+            renderScreenshots(to: CommandLine.arguments[i + 1])
+            return
+        }
         setTitle("Kp …", color: nil)
         statusItem.button?.target = self
         statusItem.button?.action = #selector(togglePopover)
@@ -47,6 +51,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate, CLLocationManagerDeleg
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
+        }
+    }
+
+    /// Documentation helper: renders the panel off-screen (real NOAA data, sample location, throw-away settings).
+    private func renderScreenshots(to dir: String) {
+        Task {
+            let suite = "kpdetector.screenshot"
+            let m = Model(defaults: UserDefaults(suiteName: suite)!)
+            m.samples = (try? await NOAA.fetchKp()) ?? []
+            m.coordinate = (48.85, 2.35)
+            m.place = "Paris, France"
+            m.auroraPercent = (try? await NOAA.fetchAurora(lat: 48.85, lon: 2.35)) ?? nil
+            m.imessageOn = true; m.imessageTo = "alice@example.com, +1 555 0100"
+            m.mailOn = true; m.mailTo = "bob@example.com"
+            let lang = Locale.current.language.languageCode?.identifier ?? "en"
+            try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
+            for (name, expanded) in [("panel", false), ("alerts", true)] {
+                m.alertsExpanded = expanded
+                let host = NSHostingView(rootView: PopoverView(model: m))
+                let win = NSWindow(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)
+                win.appearance = NSAppearance(named: .aqua)
+                win.backgroundColor = .windowBackgroundColor
+                win.contentView = host
+                win.setContentSize(host.fittingSize)
+                win.setFrameOrigin(NSPoint(x: -20000, y: -20000))   // hors écran
+                win.orderFrontRegardless()
+                win.makeFirstResponder(nil)
+                try? await Task.sleep(nanoseconds: 1_000_000_000)   // laisse Charts se mettre en page
+                host.layoutSubtreeIfNeeded()
+                if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+                    host.cacheDisplay(in: host.bounds, to: rep)
+                    try? rep.representation(using: .png, properties: [:])?
+                        .write(to: URL(fileURLWithPath: "\(dir)/\(name)-\(lang).png"))
+                }
+                win.orderOut(nil)
+            }
+            UserDefaults.standard.removePersistentDomain(forName: suite)
+            exit(0)
         }
     }
 
