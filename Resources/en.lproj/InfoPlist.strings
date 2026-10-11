@@ -1,0 +1,3 @@
+"NSLocationUsageDescription" = "KP Detector uses your location to estimate local aurora activity.";
+"NSLocationWhenInUseUsageDescription" = "KP Detector uses your location to estimate local aurora activity.";
+"NSAppleEventsUsageDescription" = "KP Detector sends geomagnetic storm alerts through Messages or Mail.";
