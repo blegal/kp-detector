@@ -2,7 +2,7 @@
 
 [English](README.md) · **Français**
 
-Une petite application macOS de barre de menu qui affiche l'**indice géomagnétique Kp** et ce qu'il signifie **là où vous êtes** : chances d'aurore à votre position, historique sur 7 jours et prévisions sur 3 jours.
+Une petite application de **barre de menu macOS** et de **barre du haut Ubuntu / GNOME** qui affiche l'**indice géomagnétique Kp** et ce qu'il signifie **là où vous êtes** : chances d'aurore à votre position, historique sur 7 jours et prévisions sur 3 jours.
 
 - Titre de barre de menu `Kp 3.3`, coloré selon l'échelle NOAA (G1 – G5)
 - Panneau avec jauges, courbe historique + prévisions, maxima par jour et détails locaux
@@ -24,6 +24,23 @@ Une petite application macOS de barre de menu qui affiche l'**indice géomagnét
 4. Autorisez la localisation quand c'est demandé. Activez *Lancer à l'ouverture de session* dans le menu ⚙.
 
 Nécessite macOS 13 ou plus récent (binaire universel : Apple silicon et Intel).
+
+### Linux (Ubuntu / GNOME)
+
+Téléchargez `kp-detector_x.y.z_all.deb` depuis la page [Releases](../../releases), puis :
+
+```bash
+sudo apt install ./kp-detector_*_all.deb
+kp-detector            # ou lancez « KP Detector » depuis la grille d'applications
+```
+
+- L'indicateur de la barre du haut (`🟢 Kp 3.3`) utilise AppIndicator, activé par défaut sur Ubuntu. Sur un GNOME « pur » (Debian, Fedora…), installez et activez `gnome-shell-extension-appindicator`.
+- Même panneau que sur macOS : jauges, courbe historique + prévisions, détails locaux. Ouvrez-le depuis le menu de l'indicateur (**Ouvrir le panneau**) ; les réglages sont dans le bouton ⚙.
+- Alertes : notifications du bureau, et en option **e-mail via votre serveur SMTP** (iMessage n'existe que sur macOS). Le mot de passe SMTP est stocké dans `~/.config/kp-detector/config.json` (mode 0600).
+- Position : GeoClue d'abord, puis un repli optionnel par adresse IP (envoie votre IP à ipwho.is ; désactivable), ou coordonnées saisies à la main.
+- Lancement à l'ouverture de session : Réglages → *Lancer à l'ouverture de session*.
+- Nécessite Ubuntu 22.04+ / Debian 12+ (Python ≥ 3.9, GTK 3). Indépendant de l'architecture.
+- Construire le paquet soi-même : `./linux/packaging/build-deb.sh` (nécessite `dpkg-deb`) ; tests : `cd linux && python3 -m unittest discover -s tests -t .`.
 
 ## Lire le panneau
 

@@ -2,7 +2,7 @@
 
 **English** · [Français](README.fr.md)
 
-A tiny macOS menu-bar app that shows the current **geomagnetic Kp index** and tells you what it means **where you are**: aurora chances at your location, a 7-day history and a 3-day forecast.
+A tiny **macOS menu-bar** and **Ubuntu / GNOME top-bar** app that shows the current **geomagnetic Kp index** and tells you what it means **where you are**: aurora chances at your location, a 7-day history and a 3-day forecast.
 
 - Menu-bar title `Kp 3.3`, colored by NOAA storm scale (G1 – G5)
 - Popover with gauges, history + forecast chart, daily maximums and local details
@@ -24,6 +24,23 @@ A tiny macOS menu-bar app that shows the current **geomagnetic Kp index** and te
 4. Allow location access when asked. Enable *Launch at login* from the ⚙ menu.
 
 Requires macOS 13 or later (universal binary: Apple silicon and Intel).
+
+### Linux (Ubuntu / GNOME)
+
+Download `kp-detector_x.y.z_all.deb` from the [Releases](../../releases) page, then:
+
+```bash
+sudo apt install ./kp-detector_*_all.deb
+kp-detector            # or launch "KP Detector" from the applications grid
+```
+
+- The top-bar indicator (`🟢 Kp 3.3`) uses AppIndicator, which Ubuntu enables by default. On vanilla GNOME (Debian, Fedora…) install and enable `gnome-shell-extension-appindicator`.
+- Same panel as on macOS: gauges, history + forecast chart, local details. Open it from the indicator menu (**Open panel**); settings are in the ⚙ button.
+- Alerts: desktop notifications, and optionally **email through your SMTP server** (iMessage is macOS-only). The SMTP password is stored in `~/.config/kp-detector/config.json` (mode 0600).
+- Location: GeoClue first, then an optional IP-based fallback (sends your IP to ipwho.is; can be disabled), or enter coordinates manually.
+- Launch at login: Settings → *Launch at login*.
+- Requires Ubuntu 22.04+ / Debian 12+ (Python ≥ 3.9, GTK 3). Architecture-independent.
+- Build the package yourself: `./linux/packaging/build-deb.sh` (needs `dpkg-deb`); run tests with `cd linux && python3 -m unittest discover -s tests -t .`.
 
 ## Reading the panel
 
