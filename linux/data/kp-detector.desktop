@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=KP Detector
+Name[fr]=KP Detector
+Comment=Geomagnetic Kp index and aurora chances in the top bar
+Comment[fr]=Indice géomagnétique Kp et chances d'aurore dans la barre du haut
+Exec=kp-detector
+Icon=kp-detector
+Terminal=false
+Categories=Utility;Science;
+Keywords=kp;aurora;geomagnetic;space weather;aurore;
+StartupNotify=false
+X-GNOME-UsesNotifications=true

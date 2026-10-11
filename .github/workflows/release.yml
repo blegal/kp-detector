@@ -3,13 +3,14 @@ name: Release
 on:
   push:
     tags: ["v*"]
+    branches: [main]      # build + tests only; releases are published for tags
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v6
@@ -20,10 +21,61 @@ jobs:
           VERSION="$VERSION" ./scripts/package.sh
       - uses: actions/upload-artifact@v7
         with:
-          name: KPDetector
+          name: release-macos
           path: dist/*
+
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb dpkg-dev fonts-dejavu-core \
+            python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-ayatanaappindicator3-0.1
+      - name: Unit tests
+        run: cd linux && python3 -m unittest discover -s tests -t . -v
+      - name: Build .deb
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          [ "$GITHUB_REF_TYPE" = "tag" ] || VERSION="0.0.0~dev"
+          VERSION="$VERSION" ./linux/packaging/build-deb.sh
+          dpkg-deb -I dist/kp-detector_*_all.deb
+          dpkg-deb -c dist/kp-detector_*_all.deb
+      - name: Install the .deb (checks dependencies resolve)
+        run: sudo apt-get install -y ./dist/kp-detector_*_all.deb
+      - name: Smoke test the installed app (headless GTK, real NOAA data)
+        run: |
+          export PYTHONDONTWRITEBYTECODE=1
+          for l in en fr; do LANGUAGE=$l LANG=${l}_${l^^}.UTF-8 xvfb-run -a kp-detector --screenshot "$PWD/shots"; done
+          ls -l shots
+          test -s shots/panel-linux-en.png && test -s shots/panel-linux-fr.png
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-linux
+          path: dist/*.deb
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux-screenshots
+          path: shots/*.png
+
+  publish:
+    needs: [macos, linux]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-*
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cd dist
+          rm -f SHA256SUMS.txt
+          sha256sum KPDetector-* kp-detector_* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
       - name: Publish GitHub release
-        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --title "KP Detector $GITHUB_REF_NAME"
+        run: gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" --generate-notes --title "KP Detector $GITHUB_REF_NAME"
